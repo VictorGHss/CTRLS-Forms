@@ -1,4 +1,4 @@
-# Nome do nosso workflow. Aparecerá na aba "Actions" do GitHub.
+# Nome do workflow.
 name: CI/CD - Deploy Backend to Railway
 
 # Gatilho: Este workflow irá rodar a cada 'push' na branch 'main'.
@@ -6,7 +6,7 @@ on:
   push:
     branches: [ "main" ]
 
-# Define os "trabalhos" (jobs) a serem executados.
+# Define os trabalhos a serem executados.
 jobs:
   build-test-and-deploy:
     # O robô irá rodar numa máquina virtual Ubuntu fornecida pelo GitHub.
@@ -29,24 +29,23 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
-          path: ~/.m2/repository
+          path: ./backend/api/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
             
       # 4. Construir e Testar com Maven
       - name: Build and run tests with Maven
-        run: mvn -B package --file pom.xml
+        working-directory: ./backend/api
+        run: mvn -B package
 
-      # 5. 🚀 Deploy Atualizado (Método Correto)
-      # Instala a ferramenta de linha de comando do Railway via npm.
+      # 5. Instalar o CLI do Railway
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      # 6. Executa o deploy para o Railway.
+      # 6. Executar o deploy para o Railway
       - name: Deploy to Railway
+        working-directory: ./backend/api
         env:
-          # Disponibiliza o nosso segredo do GitHub como uma variável de ambiente para o comando.
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
-        # O comando `railway up` faz o deploy. A flag --service diz qual serviço atualizar.
         run: railway up --service api --ci
