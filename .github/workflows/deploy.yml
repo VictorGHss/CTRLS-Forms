@@ -2,7 +2,7 @@ name: CI/CD - Deploy Backend to Railway
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
 
 jobs:
   build-test-and-deploy:
@@ -14,28 +14,19 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: "21"
-          distribution: "temurin"
+          java-version: '21'
+          distribution: 'temurin'
 
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ./backend/api/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: Build and run tests with Maven
+      - name: Build and Test with Maven
         working-directory: ./backend/api
         run: mvn -B package
 
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy to Railway
-    working-directory: ./backend/api
-    env:
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
-    run: |
-      railway login --token $RAILWAY_TOKEN
-      railway up --service api --ci
+      - name: Install, Link, and Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: |
+          npm install -g @railway/cli
+          railway link $RAILWAY_PROJECT_ID
+          cd backend/api
+          railway up --service api --ci
