@@ -1,0 +1,46 @@
+# Nome do nosso workflow. Aparecerá na aba "Actions" do GitHub.
+name: CI/CD - Deploy Backend to Railway
+
+# Gatilho: Este workflow irá rodar a cada 'push' na branch 'main'.
+on:
+  push:
+    branches: [ "main" ]
+
+# Define os trabalhos a serem executados.
+jobs:
+  build-test-and-deploy:
+    # O robô irá rodar numa máquina virtual Ubuntu fornecida pelo GitHub.
+    runs-on: ubuntu-latest
+
+    # Passos sequenciais que o robô irá executar.
+    steps:
+      # 1. Checkout do Código
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Configurar o Java (JDK)
+      # Instala a versão correta do Java.
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # 3. Cache das Dependências Maven
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # 4. Construir e Testar com Maven
+      - name: Build and run tests with Maven
+        run: mvn -B package --file pom.xml
+
+      # 5. Deploy para o Railway
+      - name: Deploy to Railway
+        uses: railway/cli-action@v1
+        with:
+          railway_token: ${{ secrets.RAILWAY_API_TOKEN }}

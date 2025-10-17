@@ -1,0 +1,24 @@
+# Arquivos de IDE
+.idea/
+*.iml
+*.iws
+
+# Arquivos de Build do Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Logs
+*.log
+
+# Arquivos de configuração local
+.env
+
+# Dados do Docker
+pgdata/
+
+# Outros
+.DS_Store
