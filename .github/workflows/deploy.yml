@@ -4,7 +4,7 @@ name: CI/CD - Deploy Backend to Railway
 # Gatilho: Este workflow irá rodar a cada 'push' na branch 'main'.
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 # Define os trabalhos a serem executados.
 jobs:
@@ -22,8 +22,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: "21"
+          distribution: "temurin"
 
       # 3. Cache das Dependências Maven
       - name: Cache Maven packages
@@ -33,7 +33,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-            
+
       # 4. Construir e Testar com Maven
       - name: Build and run tests with Maven
         working-directory: ./backend/api
@@ -48,5 +48,4 @@ jobs:
         working-directory: ./backend/api
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-        run: railway up --service api --ci
+run: railway up --service api --project ${{ secrets.RAILWAY_PROJECT_ID }} --ci
