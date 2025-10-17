@@ -41,6 +41,6 @@ jobs:
 
       # 5. Deploy para o Railway
       - name: Deploy to Railway
-        uses: railway/cli-action@v1
+        uses: railwayapp/cli-action@v1
         with:
           railway_token: ${{ secrets.RAILWAY_API_TOKEN }}
