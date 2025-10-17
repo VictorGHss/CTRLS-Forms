@@ -21,12 +21,35 @@ jobs:
         working-directory: ./backend/api
         run: mvn -B package
 
-      - name: Install, Link, and Deploy to Railway
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      # --- PASSO DE DIAGNÓSTICO ---
+      # Este passo irá falhar se os segredos não estiverem presentes.
+      - name: Debug Environment Variables
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
         run: |
-          npm install -g @railway/cli
-          railway link $RAILWAY_PROJECT_ID
-          cd backend/api
-          railway up --service api --ci
+          echo "--- Verificando os segredos ---"
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "ERRO FATAL: O segredo RAILWAY_TOKEN está VAZIO ou não foi encontrado."
+            exit 1
+          else
+            echo "RAILWAY_TOKEN encontrado com sucesso."
+          fi
+          
+          if [ -z "$RAILWAY_PROJECT_ID" ]; then
+            echo "ERRO FATAL: O segredo RAILWAY_PROJECT_ID está VAZIO ou não foi encontrado."
+            exit 1
+          else
+            echo "RAILWAY_PROJECT_ID encontrado com sucesso."
+          fi
+
+      # O passo de deploy original, que só será executado se o debug passar.
+      - name: Deploy to Railway
+        working-directory: ./backend/api
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: railway up --service api --ci
