@@ -1,0 +1,5 @@
+# Normalize line endings and ensure properties files are UTF-8
+* text=auto eol=lf
+# Treat .properties as UTF-8 in working tree to avoid encoding issues in CI
+*.properties text working-tree-encoding=UTF-8
+

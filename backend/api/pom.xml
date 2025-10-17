@@ -156,6 +156,7 @@
                 <filtering>true</filtering>
                 <excludes>
                     <exclude>application.properties</exclude>
+                    <exclude>application-prod.properties</exclude>
                 </excludes>
             </resource>
             <resource>
@@ -163,6 +164,7 @@
                 <filtering>false</filtering>
                 <includes>
                     <include>application.properties</include>
+                    <include>application-prod.properties</include>
                 </includes>
             </resource>
         </resources>
@@ -174,6 +176,12 @@
                 <version>3.3.1</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
+                    <nonFilteredFileExtensions>
+                        <nonFilteredFileExtension>properties</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>yml</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>yaml</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>xml</nonFilteredFileExtension>
+                    </nonFilteredFileExtensions>
                 </configuration>
             </plugin>
             <plugin>
