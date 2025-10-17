@@ -6,7 +6,7 @@ on:
   push:
     branches: [ "main" ]
 
-# Define os trabalhos a serem executados.
+# Define os "trabalhos" (jobs) a serem executados.
 jobs:
   build-test-and-deploy:
     # O robô irá rodar numa máquina virtual Ubuntu fornecida pelo GitHub.
@@ -18,8 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Configurar o Java (JDK)
-      # Instala a versão correta do Java.
+      # 2. Configurar o Java (JDK 21)
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -34,13 +33,20 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
+            
       # 4. Construir e Testar com Maven
       - name: Build and run tests with Maven
         run: mvn -B package --file pom.xml
 
-      # 5. Deploy para o Railway
+      # 5. 🚀 Deploy Atualizado (Método Correto)
+      # Instala a ferramenta de linha de comando do Railway via npm.
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      # 6. Executa o deploy para o Railway.
       - name: Deploy to Railway
-        uses: railwayapp/cli-action@v2
-        with:
-          railway_token: ${{ secrets.RAILWAY_API_TOKEN }}
+        env:
+          # Disponibiliza o nosso segredo do GitHub como uma variável de ambiente para o comando.
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+        # O comando `railway up` faz o deploy. A flag --service diz qual serviço atualizar.
+        run: railway up --service api --ci
