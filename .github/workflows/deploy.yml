@@ -18,34 +18,14 @@ jobs:
           distribution: 'temurin'
 
       - name: Build and Test with Maven
-        working-directory: ./backend/api # Compila e testa dentro da pasta correta
+        working-directory: ./backend/api
         run: mvn -B package
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      # Manter o passo de debug por segurança, para garantir que os segredos estão a chegar
-      - name: Debug Environment Variables 
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-        run: |
-          echo "--- Verificando os segredos ---"
-          if [ -z "$RAILWAY_TOKEN" ]; then
-            echo "ERRO FATAL: O segredo RAILWAY_TOKEN está VAZIO ou não foi encontrado."
-            exit 1
-          else
-            echo "RAILWAY_TOKEN encontrado com sucesso."
-          fi
-          if [ -z "$RAILWAY_PROJECT_ID" ]; then
-            echo "ERRO FATAL: O segredo RAILWAY_PROJECT_ID está VAZIO ou não foi encontrado."
-            exit 1
-          else
-            echo "RAILWAY_PROJECT_ID encontrado com sucesso."
-          fi
-
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-        run: railway up --service api -- -p ./backend/api --ci
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }} 
+        run: railway up --service api --ci ./backend/api
