@@ -24,9 +24,20 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
+      - name: Debug Environment Variables
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: |
+          echo "--- Verificando os segredos ---"
+          # ... (código de verificação dos segredos) ...
+          if [ -z "$RAILWAY_TOKEN" ]; then echo "ERRO FATAL: O segredo RAILWAY_TOKEN está VAZIO ou não foi encontrado."; exit 1; else echo "RAILWAY_TOKEN encontrado com sucesso."; fi
+          if [ -z "$RAILWAY_PROJECT_ID" ]; then echo "ERRO FATAL: O segredo RAILWAY_PROJECT_ID está VAZIO ou não foi encontrado."; exit 1; else echo "RAILWAY_PROJECT_ID encontrado com sucesso."; fi
+
+
       - name: Deploy to Railway
         working-directory: ./backend/api
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }} 
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-        run: railway up --service api --ci
+        run: railway up --service api --no-confirm
