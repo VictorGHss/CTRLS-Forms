@@ -18,13 +18,14 @@ jobs:
           distribution: 'temurin'
 
       - name: Build and Test with Maven
-        working-directory: ./backend/api
+        working-directory: ./backend/api # Compila e testa dentro da pasta correta
         run: mvn -B package
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Debug Environment Variables
+      # Manter o passo de debug por segurança, para garantir que os segredos estão a chegar
+      - name: Debug Environment Variables 
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
@@ -44,8 +45,7 @@ jobs:
           fi
 
       - name: Deploy to Railway
-        working-directory: ./backend/api
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-        run: railway up --service api --ci
+        run: railway up --service api -p ./backend/api --ci
