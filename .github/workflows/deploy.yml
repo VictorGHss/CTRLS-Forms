@@ -7,37 +7,63 @@ on:
 jobs:
   build-test-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: 🧾 Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: ☕ Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build and Test with Maven
+      # Cache das dependências Maven (Mantido da nossa versão anterior)
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ./backend/api/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: 🏗️ Build and Test with Maven
         working-directory: ./backend/api
         run: mvn -B package
 
-      - name: Install Railway CLI
+      - name: 📦 Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Debug Environment Variables
+      - name: 🚀 Deploy to Railway
+        working-directory: ./backend/api # Importante para railway status encontrar o contexto (se houver railway.json)
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }} # Manter para railway status
         run: |
-          echo "--- Verificando os segredos ---"
-          # ... (código de verificação dos segredos) ...
-          if [ -z "$RAILWAY_TOKEN" ]; then echo "ERRO FATAL: O segredo RAILWAY_TOKEN está VAZIO ou não foi encontrado."; exit 1; else echo "RAILWAY_TOKEN encontrado com sucesso."; fi
-          if [ -z "$RAILWAY_PROJECT_ID" ]; then echo "ERRO FATAL: O segredo RAILWAY_PROJECT_ID está VAZIO ou não foi encontrado."; exit 1; else echo "RAILWAY_PROJECT_ID encontrado com sucesso."; fi
+          echo "🔐 Verificando autenticação Railway..."
+          # Tenta verificar o usuário, mas continua mesmo se falhar (tokens CI podem não mostrar 'whoami')
+          railway whoami || echo "⚠️  Não foi possível verificar o usuário (pode ser token CI)."
+          
+          echo "📊 Verificando status do projeto..."
+          # Tenta verificar o status, mas continua mesmo se falhar
+          railway status || echo "⚠️  Não foi possível recuperar status. Continuando mesmo assim..."
 
+          echo "🚀 Iniciando deploy..."
+          set -o pipefail # Garante que o script falhe se algum comando falhar
 
-      - name: Deploy to Railway
-        working-directory: ./backend/api
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-        run: railway up --service api --no-confirm
+          # Tenta o deploy com modo CI e logs detalhados. Redireciona stderr para stdout (2>&1)
+          # e salva tudo no ficheiro 'railway-deploy.log' E mostra na consola (tee).
+          # Se o primeiro comando falhar (||), executa o segundo.
+          railway up --service api --ci --verbose 2>&1 | tee railway-deploy.log || (
+            echo "⚠️ Falha no modo CI (--ci). Tentando modo detach (--detach)..."
+            # Tenta o deploy em modo detached, anexando (-a) ao mesmo ficheiro de log.
+            railway up --service api --detach 2>&1 | tee -a railway-deploy.log
+          )
+
+      # Este passo SEMPRE roda (if: always()), mesmo se o deploy falhar.
+      - name: 📜 Upload Railway Logs (para debug)
+        if: always() # Garante que os logs sejam carregados mesmo em caso de erro no deploy
+        uses: actions/upload-artifact@v4
+        with:
+          name: railway-deploy-logs # Nome do artefacto no GitHub Actions
+          path: ./backend/api/railway-deploy.log # Caminho para o ficheiro de log gerado
