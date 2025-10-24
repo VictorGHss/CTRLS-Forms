@@ -2,7 +2,6 @@ package br.dev.ctrls.api.dto.request;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
-
 import java.time.LocalDate;
 
 @Data
@@ -29,4 +28,9 @@ public class PatientFormRequest {
     private String medicalHistory;
     private String currentMedications;
     private String allergies;
+
+    // NOVO CAMPO: Consentimento
+    @NotNull(message = "É necessário concordar com os termos de consentimento.")
+    @AssertTrue(message = "É necessário concordar com os termos de consentimento.")
+    private Boolean consentGiven;
 }

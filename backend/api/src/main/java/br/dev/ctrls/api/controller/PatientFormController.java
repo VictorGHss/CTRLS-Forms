@@ -10,22 +10,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID; // IMPORTAR
+
 @RestController
 @RequestMapping("/public/forms")
 @RequiredArgsConstructor
-@Tag(name = "Formulários Públicos", description = "Endpoints públicos para submissão de formulários de pacientes")
+@Tag(name = "Formulário Público", description = "Endpoint para pacientes submeterem formulários")
 public class PatientFormController {
 
     private final PatientFormService patientFormService;
 
     @PostMapping("/{linkToken}/submit")
-    @Operation(summary = "Submete um formulário de paciente", description = "Cria um formulário para o link público (linkToken) enviado pelo paciente.")
+    @Operation(summary = "Submete um formulário pré-consulta preenchido pelo paciente")
     public ResponseEntity<Void> submitPatientForm(
-            @PathVariable String linkToken,
+            @PathVariable UUID linkToken, // MUDA PARA UUID
             @Valid @RequestBody PatientFormRequest request) {
 
         patientFormService.createPatientForm(linkToken, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
 }

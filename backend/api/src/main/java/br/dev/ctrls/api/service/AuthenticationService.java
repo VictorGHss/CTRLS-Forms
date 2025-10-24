@@ -1,6 +1,6 @@
 package br.dev.ctrls.api.service;
 
-import br.dev.ctrls.api.domain.repository.DoctorRepository;
+import br.dev.ctrls.api.domain.repository.UserRepository;
 import br.dev.ctrls.api.dto.auth.AuthenticationRequest;
 import br.dev.ctrls.api.dto.auth.AuthenticationResponse;
 import br.dev.ctrls.api.security.JwtService;
@@ -14,14 +14,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    private final DoctorRepository doctorRepository;
+    private final UserRepository userRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse login(AuthenticationRequest request) {
-        // 1. O AuthenticationManager usa os Beans (UserDetailsService e PasswordEncoder)
-        //    para validar se o e-mail e a senha correspondem a um utilizador no banco de dados.
-        //    Se as credenciais estiverem incorretas, ele lança uma exceção.
+        // 1. Autentica usando email/senha (o AuthenticationManager usa o userDetailsService)
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
@@ -29,16 +27,17 @@ public class AuthenticationService {
                 )
         );
 
-        // 2. Se a autenticação for bem-sucedida, busca o utilizador para gerar o token.
-        var doctor = doctorRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado após a autenticação."));
+        // 2. Busca o User no repositório e passa o UserDetails para generateToken.
+        var user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("Utilizador não encontrado após autenticação bem-sucedida. Email: " + request.getEmail()));
 
-        // 3. Gera o token JWT para o médico encontrado.
-        var jwtToken = jwtService.generateToken(doctor);
+        // 3. Gera o token JWT para o utilizador encontrado.
+        var jwtToken = jwtService.generateToken(user);
 
-        // 4. Retornamos o token encapsulado na classe de resposta.
+        // 4. Retorna o token.
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();
     }
+
 }

@@ -1,6 +1,6 @@
 package br.dev.ctrls.api.config;
 
-import br.dev.ctrls.api.domain.repository.DoctorRepository;
+import br.dev.ctrls.api.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,20 +15,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-    private final DoctorRepository doctorRepository;
+    private final UserRepository userRepository;
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> doctorRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+        return username -> userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilizador não encontrado com o email: " + username));
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Define o BCrypt como o algoritmo para codificar e verificar senhas.
         return new BCryptPasswordEncoder();
     }
-
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

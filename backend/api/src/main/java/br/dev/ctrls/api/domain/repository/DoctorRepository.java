@@ -10,7 +10,6 @@ import java.util.UUID;
 @Repository
 public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
 
-    Optional<Doctor> findByLinkToken(String linkToken);
-
-    Optional<Doctor> findByEmail(String email);
+    Optional<Doctor> findByUserId(UUID userId);
+    Optional<Doctor> findByProfessionalCouncilTypeAndProfessionalCouncilNumberAndProfessionalCouncilState(String type, String number, String state);
 }
